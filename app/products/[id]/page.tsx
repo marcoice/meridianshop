@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getFirstShopId, getProduct } from "@/lib/printify";
 import AddToCartSection from "@/components/AddToCartSection";
+import ProductImageGallery from "@/components/ProductImageGallery";
 
 export const revalidate = 60;
 
@@ -39,14 +40,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product.visible) notFound();
 
   const images = product.images.filter((img) => img.src);
-  const defaultImage = images.find((img) => img.is_default) ?? images[0];
 
   return (
     <div>
       {/* Breadcrumb */}
       <nav
-        className="px-6 py-4 max-w-6xl mx-auto"
-        style={{ fontSize: "0.65rem", letterSpacing: "0.15em", color: "var(--text-3)" }}
+        className="px-6 py-5 max-w-6xl mx-auto"
+        style={{ fontSize: "0.6rem", letterSpacing: "0.18em", color: "var(--text-3)" }}
       >
         <a href="/" className="hover:text-[var(--text)] transition-colors">Home</a>
         <span className="mx-2" style={{ color: "var(--border-2)" }}>/</span>
@@ -56,71 +56,38 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </nav>
 
       <div
-        className="max-w-6xl mx-auto px-6 pb-24"
+        className="max-w-6xl mx-auto px-6 pb-32"
         style={{ borderTop: "1px solid var(--border)" }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 lg:divide-x divide-[var(--border)]">
           {/* ── Images column ────────────────────── */}
-          <div className="py-10 lg:pr-12 space-y-3">
-            {/* Main image */}
-            <div
-              className="overflow-hidden"
-              style={{ aspectRatio: "1/1", background: "var(--surface)" }}
-            >
-              {defaultImage && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={defaultImage.src}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
-              <div className="grid grid-cols-4 gap-1">
-                {images.slice(0, 8).map((img, i) => (
-                  <div
-                    key={i}
-                    className="overflow-hidden"
-                    style={{ aspectRatio: "1/1", background: "var(--surface)" }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={img.src}
-                      alt={`${product.title} view ${i + 1}`}
-                      className="w-full h-full object-cover cursor-pointer"
-                      style={{ opacity: 0.65, transition: "opacity 0.2s" }}
-                      onMouseEnter={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = "1")}
-                      onMouseLeave={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = "0.65")}
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductImageGallery images={images} title={product.title} />
 
           {/* ── Product info column ──────────────── */}
           <div className="py-10 lg:pl-12">
             {/* Title */}
             <h1
-              className="font-serif font-light leading-tight mb-8"
-              style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)", color: "var(--text)" }}
+              className="font-serif font-light leading-none mb-3"
+              style={{ fontSize: "clamp(2rem, 5vw, 3.2rem)", color: "var(--text)" }}
             >
               {product.title}
             </h1>
+
+            {/* Subtitle line */}
+            <p className="label mb-8" style={{ color: "var(--gold-dim)", letterSpacing: "0.3em" }}>
+              Meridian Collection
+            </p>
 
             <AddToCartSection product={product} />
 
             {/* Description */}
             {product.description && (
               <div className="mt-10 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
-                <p className="label mb-4" style={{ letterSpacing: "0.25em" }}>Description</p>
+                <p className="label mb-5" style={{ letterSpacing: "0.3em", color: "var(--text-3)" }}>
+                  About this product
+                </p>
                 <div
-                  style={{ fontSize: "0.82rem", color: "var(--text-2)", lineHeight: 1.85 }}
-                  className="[&_p]:mb-3 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1.5"
+                  className="product-description"
                   dangerouslySetInnerHTML={{ __html: product.description }}
                 />
               </div>
@@ -128,16 +95,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             {/* Tags */}
             {product.tags.length > 0 && (
-              <div className="mt-8 flex flex-wrap gap-2">
+              <div className="mt-8 pt-6 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid var(--border)" }}>
                 {product.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="label"
                     style={{
-                      padding: "0.3rem 0.75rem",
-                      border: "1px solid var(--border-2)",
-                      fontSize: "0.55rem",
+                      padding: "0.25rem 0.65rem",
+                      border: "1px solid var(--border)",
+                      fontSize: "0.52rem",
                       letterSpacing: "0.12em",
+                      textTransform: "uppercase",
                       color: "var(--text-3)",
                     }}
                   >

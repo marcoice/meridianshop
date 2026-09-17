@@ -41,27 +41,16 @@ export default function ProductCard({ product, priority: _priority }: ProductCar
           </div>
         )}
 
-        {/* Dark overlay on hover */}
+        {/* Dark overlay on hover — CSS only, no JS handlers */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-center gap-3 transition-all duration-300"
-          style={{
-            background: "rgba(0,0,0,0)",
-            opacity: 0,
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0.55)";
-            (e.currentTarget as HTMLDivElement).style.opacity = "1";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLDivElement).style.background = "rgba(0,0,0,0)";
-            (e.currentTarget as HTMLDivElement).style.opacity = "0";
-          }}
+          className="absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          style={{ background: "rgba(0,0,0,0.55)" }}
         >
           <span
             className="btn-gold"
             style={{ height: "2.5rem", fontSize: "0.6rem", letterSpacing: "0.2em", padding: "0 1.5rem" }}
           >
-            Quick view
+            View product
           </span>
         </div>
       </div>

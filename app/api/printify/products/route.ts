@@ -13,7 +13,13 @@ export async function GET(request: NextRequest) {
     const shopId = await getFirstShopId();
     const data = await getProducts(shopId, page, limit);
 
-    return NextResponse.json(data);
+    // Filter to show only published products (visible: true)
+    const publishedProducts = data.data.filter((product) => product.visible);
+
+    return NextResponse.json({
+      ...data,
+      data: publishedProducts,
+    });
   } catch (err) {
     console.error("[/api/printify/products]", err);
     return NextResponse.json(

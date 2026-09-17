@@ -104,6 +104,35 @@ body {
 }
 .btn-ghost:hover { border-color: var(--gold); color: var(--text); }
 
+/* ── Product description (rendered HTML from Printify) ──── */
+.product-description {
+  font-size: 0.82rem;
+  color: var(--text-2);
+  line-height: 1.9;
+}
+.product-description p   { margin-bottom: 0.85rem; }
+.product-description p:last-child { margin-bottom: 0; }
+.product-description ul,
+.product-description ol  { padding-left: 1.25rem; margin-bottom: 0.85rem; }
+.product-description ul  { list-style: disc; }
+.product-description ol  { list-style: decimal; }
+.product-description li  { margin-bottom: 0.4rem; }
+.product-description strong { color: var(--text); font-weight: 600; }
+.product-description em     { font-style: italic; color: var(--text); }
+.product-description a      { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+.product-description h1,
+.product-description h2,
+.product-description h3 {
+  font-family: var(--font-cormorant, Georgia, serif);
+  font-weight: 300;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  margin-top: 1.25rem;
+}
+.product-description h2 { font-size: 1.15rem; }
+.product-description h3 { font-size: 0.95rem; }
+.product-description br  { display: block; content: ""; margin: 0.3rem 0; }
+
 /* ── Line clamp ──────────────────────────────────────────── */
 .line-clamp-2 {
   display: -webkit-box;

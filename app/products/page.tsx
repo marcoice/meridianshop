@@ -27,7 +27,8 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
     error = true;
   }
 
-  const visibleProducts = products?.data.filter((p) => p.visible) ?? [];
+  // Products are already filtered by the API to show only published ones (visible: true)
+  const visibleProducts = products?.data ?? [];
 
   return (
     <div>
