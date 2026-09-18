@@ -12,12 +12,27 @@ export default function AddToCartSection({ product }: AddToCartProps) {
   const { addItem } = useCart();
   const enabledVariants = product.variants.filter((v) => v.is_enabled);
   const defaultVariant = enabledVariants.find((v) => v.is_default) ?? enabledVariants[0];
-  const [selected, setSelected] = useState<PrintifyVariant | undefined>(defaultVariant);
-  const [added, setAdded] = useState(false);
 
-  const defaultImage = product.images.find((img) => img.is_default) ?? product.images[0];
   const sizeOpt  = product.options.find((o) => o.type?.toLowerCase().includes("size"));
   const colorOpt = product.options.find((o) => o.type?.toLowerCase().includes("color"));
+
+  // Track color and size independently
+  const [selectedColorId, setSelectedColorId] = useState<number | undefined>(
+    colorOpt?.values.find((v) => defaultVariant?.options.includes(v.id))?.id
+  );
+  const [selectedSizeId, setSelectedSizeId] = useState<number | undefined>(
+    sizeOpt?.values.find((v) => defaultVariant?.options.includes(v.id))?.id
+  );
+  const [added, setAdded] = useState(false);
+
+  // Find the variant matching current color + size selection
+  const selected = enabledVariants.find((v) => {
+    const colorMatch = !colorOpt || selectedColorId === undefined || v.options.includes(selectedColorId);
+    const sizeMatch  = !sizeOpt  || selectedSizeId  === undefined || v.options.includes(selectedSizeId);
+    return colorMatch && sizeMatch;
+  });
+
+  const defaultImage = product.images.find((img) => img.is_default) ?? product.images[0];
 
   function handleAdd() {
     if (!selected) return;
@@ -32,6 +47,15 @@ export default function AddToCartSection({ product }: AddToCartProps) {
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);
+  }
+
+  // Check if a specific color+size combo has an enabled variant
+  function isComboAvailable(colorId?: number, sizeId?: number) {
+    return enabledVariants.some((v) => {
+      const colorMatch = !colorOpt || colorId === undefined || v.options.includes(colorId);
+      const sizeMatch  = !sizeOpt  || sizeId  === undefined || v.options.includes(sizeId);
+      return colorMatch && sizeMatch;
+    });
   }
 
   return (
@@ -55,27 +79,28 @@ export default function AddToCartSection({ product }: AddToCartProps) {
       {colorOpt && enabledVariants.length > 1 && (
         <div>
           <p className="label mb-3" style={{ letterSpacing: "0.25em" }}>
-            Colour — <span style={{ color: "var(--text)" }}>{
-              colorOpt.values.find((v) => selected?.options.includes(v.id))?.title ?? "—"
-            }</span>
+            Colour — <span style={{ color: "var(--text)" }}>{colorOpt.values.find((v) => v.id === selectedColorId)?.title ?? "—"}</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {colorOpt.values.map((val) => {
-              const matches = enabledVariants.filter((v) => v.options.includes(val.id));
-              if (!matches.length) return null;
-              const isSelected = matches.some((v) => v.id === selected?.id);
+              const hasAny = enabledVariants.some((v) => v.options.includes(val.id));
+              if (!hasAny) return null;
+              const isSelected = selectedColorId === val.id;
+              const available = isComboAvailable(val.id, selectedSizeId);
               return (
                 <button
                   key={val.id}
-                  onClick={() => setSelected(matches[0])}
+                  onClick={() => setSelectedColorId(val.id)}
                   className="transition-all"
                   style={{
                     padding: "0.4rem 1rem",
                     fontSize: "0.7rem",
                     letterSpacing: "0.1em",
                     border: isSelected ? "1px solid var(--gold)" : "1px solid var(--border-2)",
-                    color: isSelected ? "var(--text)" : "var(--text-2)",
+                    color: isSelected ? "var(--text)" : !available ? "var(--text-3)" : "var(--text-2)",
                     background: isSelected ? "rgba(212,168,83,0.08)" : "transparent",
+                    opacity: !isSelected && !available ? 0.4 : 1,
+                    textDecoration: !isSelected && !available ? "line-through" : "none",
                   }}
                 >
                   {val.title}
@@ -90,26 +115,27 @@ export default function AddToCartSection({ product }: AddToCartProps) {
       {sizeOpt && enabledVariants.length > 1 && (
         <div>
           <p className="label mb-3" style={{ letterSpacing: "0.25em" }}>
-            Size — <span style={{ color: "var(--text)" }}>{
-              sizeOpt.values.find((v) => selected?.options.includes(v.id))?.title ?? "—"
-            }</span>
+            Size — <span style={{ color: "var(--text)" }}>{sizeOpt.values.find((v) => v.id === selectedSizeId)?.title ?? "—"}</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {sizeOpt.values.map((val) => {
-              const matches = enabledVariants.filter((v) => v.options.includes(val.id));
-              if (!matches.length) return null;
-              const isSelected = matches.some((v) => v.id === selected?.id);
+              const hasAny = enabledVariants.some((v) => v.options.includes(val.id));
+              if (!hasAny) return null;
+              const isSelected = selectedSizeId === val.id;
+              const available = isComboAvailable(selectedColorId, val.id);
               return (
                 <button
                   key={val.id}
-                  onClick={() => setSelected(matches[0])}
+                  onClick={() => setSelectedSizeId(val.id)}
                   className="transition-all"
                   style={{
                     minWidth: "3rem", height: "2.75rem",
                     fontSize: "0.7rem", letterSpacing: "0.08em",
                     border: isSelected ? "1px solid var(--gold)" : "1px solid var(--border-2)",
-                    color: isSelected ? "var(--text)" : "var(--text-2)",
+                    color: isSelected ? "var(--text)" : !available ? "var(--text-3)" : "var(--text-2)",
                     background: isSelected ? "rgba(212,168,83,0.08)" : "transparent",
+                    opacity: !isSelected && !available ? 0.4 : 1,
+                    textDecoration: !isSelected && !available ? "line-through" : "none",
                   }}
                 >
                   {val.title}
@@ -117,6 +143,11 @@ export default function AddToCartSection({ product }: AddToCartProps) {
               );
             })}
           </div>
+          {!selected && selectedSizeId && selectedColorId && (
+            <p className="mt-2 text-xs" style={{ color: "var(--text-3)" }}>
+              This combination is not available
+            </p>
+          )}
         </div>
       )}
 
@@ -126,7 +157,13 @@ export default function AddToCartSection({ product }: AddToCartProps) {
           <p className="label mb-3" style={{ letterSpacing: "0.25em" }}>Variant</p>
           <select
             value={selected?.id ?? ""}
-            onChange={(e) => setSelected(enabledVariants.find((v) => v.id === Number(e.target.value)))}
+            onChange={(e) => {
+              const v = enabledVariants.find((v) => v.id === Number(e.target.value));
+              if (v) {
+                setSelectedColorId(colorOpt?.values.find((c) => v.options.includes(c.id))?.id);
+                setSelectedSizeId(sizeOpt?.values.find((s) => v.options.includes(s.id))?.id);
+              }
+            }}
             className="w-full focus:outline-none"
             style={{
               background: "var(--surface)", border: "1px solid var(--border-2)",
@@ -150,18 +187,18 @@ export default function AddToCartSection({ product }: AddToCartProps) {
       <button
         onClick={handleAdd}
         disabled={!selected}
-        className="w-full transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+        className="w-full transition-all disabled:cursor-not-allowed"
         style={{
           height: "3.5rem",
-          background: added ? "#1a3a1a" : "var(--gold)",
-          color: added ? "#5aba5a" : "#000",
+          background: added ? "#1a3a1a" : !selected ? "transparent" : "var(--gold)",
+          color: added ? "#5aba5a" : !selected ? "var(--text-3)" : "#000",
           fontSize: "0.65rem", fontWeight: 700,
           letterSpacing: "0.22em", textTransform: "uppercase",
-          border: added ? "1px solid #2d5a2d" : "none",
+          border: added ? "1px solid #2d5a2d" : !selected ? "1px solid var(--border-2)" : "none",
           transition: "all 0.3s ease",
         }}
       >
-        {added ? "Added to your selection ✓" : "Add to selection"}
+        {added ? "Added to your selection \u2713" : !selected ? "Unavailable in this combination" : "Add to selection"}
       </button>
 
       {/* Trust signals */}
