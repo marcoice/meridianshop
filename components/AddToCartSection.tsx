@@ -89,6 +89,7 @@ export default function AddToCartSection({ product }: AddToCartProps) {
               const available = isComboAvailable(val.id, selectedSizeId);
               return (
                 <button
+                  type="button"
                   key={val.id}
                   onClick={() => setSelectedColorId(val.id)}
                   className="transition-all"
@@ -101,6 +102,8 @@ export default function AddToCartSection({ product }: AddToCartProps) {
                     background: isSelected ? "rgba(212,168,83,0.08)" : "transparent",
                     opacity: !isSelected && !available ? 0.4 : 1,
                     textDecoration: !isSelected && !available ? "line-through" : "none",
+                    pointerEvents: "auto",
+                    cursor: "pointer",
                   }}
                 >
                   {val.title}
@@ -125,6 +128,7 @@ export default function AddToCartSection({ product }: AddToCartProps) {
               const available = isComboAvailable(selectedColorId, val.id);
               return (
                 <button
+                  type="button"
                   key={val.id}
                   onClick={() => setSelectedSizeId(val.id)}
                   className="transition-all"
@@ -136,6 +140,8 @@ export default function AddToCartSection({ product }: AddToCartProps) {
                     background: isSelected ? "rgba(212,168,83,0.08)" : "transparent",
                     opacity: !isSelected && !available ? 0.4 : 1,
                     textDecoration: !isSelected && !available ? "line-through" : "none",
+                    pointerEvents: "auto",
+                    cursor: "pointer",
                   }}
                 >
                   {val.title}
@@ -185,6 +191,7 @@ export default function AddToCartSection({ product }: AddToCartProps) {
 
       {/* Add to cart CTA */}
       <button
+        type="button"
         onClick={handleAdd}
         disabled={!selected}
         className="w-full transition-all disabled:cursor-not-allowed"
