@@ -6,9 +6,14 @@ import { useCart } from "@/lib/cart-store";
 import type { OrderAddress } from "@/lib/types";
 import dynamic from "next/dynamic";
 
-// Lazy-load PayPal button — avoids SSR issues
+// Lazy-load payment components — avoids SSR issues
 const PayPalCheckoutButton = dynamic(
   () => import("@/components/PayPalCheckoutButton"),
+  { ssr: false }
+);
+
+const StripeCheckoutButton = dynamic(
+  () => import("@/components/StripeCheckoutButton"),
   { ssr: false }
 );
 
@@ -16,6 +21,11 @@ const PAYPAL_CONFIGURED =
   typeof process !== "undefined" &&
   !!process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID &&
   process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID !== "your_paypal_client_id_here";
+
+const STRIPE_CONFIGURED =
+  typeof process !== "undefined" &&
+  !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY !== "your_stripe_publishable_key_here";
 
 const EMPTY_ADDRESS: OrderAddress = {
   first_name: "",
@@ -37,6 +47,9 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<"address" | "payment">("address");
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<
+    "paypal" | "stripe" | null
+  >(STRIPE_CONFIGURED ? "stripe" : PAYPAL_CONFIGURED ? "paypal" : null);
 
   const cartTotal = total();
 
@@ -188,7 +201,75 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {PAYPAL_CONFIGURED ? (
+              {/* Payment method selector */}
+              {(PAYPAL_CONFIGURED || STRIPE_CONFIGURED) && (
+                <div className="mb-6 space-y-3">
+                  <p className="text-white font-medium text-sm">
+                    Select payment method
+                  </p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {STRIPE_CONFIGURED && (
+                      <label className="flex items-center gap-3 p-4 bg-[#111] border border-[#2A2A2A] rounded cursor-pointer hover:border-[#C9A84C] transition-colors">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          value="stripe"
+                          checked={paymentMethod === "stripe"}
+                          onChange={() => setPaymentMethod("stripe")}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="text-white text-sm font-medium">
+                            Card / Apple Pay / Google Pay
+                          </p>
+                          <p className="text-[#888] text-xs">
+                            Secure payment via Stripe
+                          </p>
+                        </div>
+                      </label>
+                    )}
+
+                    {PAYPAL_CONFIGURED && (
+                      <label className="flex items-center gap-3 p-4 bg-[#111] border border-[#2A2A2A] rounded cursor-pointer hover:border-[#C9A84C] transition-colors">
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          value="paypal"
+                          checked={paymentMethod === "paypal"}
+                          onChange={() => setPaymentMethod("paypal")}
+                          className="w-4 h-4"
+                        />
+                        <div>
+                          <p className="text-white text-sm font-medium">
+                            PayPal
+                          </p>
+                          <p className="text-[#888] text-xs">
+                            Fast and secure payment
+                          </p>
+                        </div>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Payment form */}
+              {paymentMethod === "stripe" && STRIPE_CONFIGURED ? (
+                <StripeCheckoutButton
+                  items={items}
+                  total={cartTotal}
+                  shippingAddress={address}
+                  onSuccess={() => {
+                    clearCart();
+                    setSuccess(true);
+                  }}
+                  onError={() =>
+                    setError(
+                      "Payment failed. Please try again or contact support."
+                    )
+                  }
+                />
+              ) : paymentMethod === "paypal" && PAYPAL_CONFIGURED ? (
                 <PayPalCheckoutButton
                   items={items}
                   total={cartTotal}
@@ -203,22 +284,18 @@ export default function CheckoutPage() {
                     )
                   }
                 />
-              ) : (
+              ) : !PAYPAL_CONFIGURED && !STRIPE_CONFIGURED ? (
                 <div className="bg-[#111] border border-[#2A2A2A] rounded-lg p-6 text-center">
                   <p className="text-[#555] text-sm mb-2">
-                    PayPal is not yet configured.
+                    Payment methods not configured.
                   </p>
                   <p className="text-[#333] text-xs">
-                    Add your{" "}
-                    <code className="text-[#888]">
-                      NEXT_PUBLIC_PAYPAL_CLIENT_ID
-                    </code>{" "}
-                    to{" "}
+                    Configure Stripe or PayPal in your{" "}
                     <code className="text-[#888]">.env.local</code> to enable
                     payments.
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
         </div>
