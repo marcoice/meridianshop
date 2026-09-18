@@ -11,10 +11,16 @@ const NAV = [
 ];
 
 export default function Header() {
-  const { toggleCart, itemCount } = useCart();
-  const count = itemCount();
+  const { toggleCart } = useCart();
+  const items = useCart((state) => state.items);
+  const [mounted, setMounted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Server renders 0; client syncs after mount — prevents hydration mismatch
+  const count = mounted ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);

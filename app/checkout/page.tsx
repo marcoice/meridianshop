@@ -40,6 +40,40 @@ const EMPTY_ADDRESS: OrderAddress = {
   zip: "",
 };
 
+function Field({
+  label,
+  name,
+  type = "text",
+  required = true,
+  half = false,
+  value,
+  onChange,
+}: {
+  label: string;
+  name: keyof OrderAddress;
+  type?: string;
+  required?: boolean;
+  half?: boolean;
+  value: string;
+  onChange: (name: keyof OrderAddress, value: string) => void;
+}) {
+  return (
+    <div className={half ? "col-span-1" : "col-span-2"}>
+      <label className="block text-xs text-[#888] tracking-widest uppercase mb-1.5">
+        {label}
+        {required && <span className="text-[#C9A84C] ml-1">*</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(name, e.target.value)}
+        required={required}
+        className="w-full bg-[#111] border border-[#2A2A2A] text-white text-sm rounded px-3 py-2.5 focus:outline-none focus:border-[#C9A84C] transition-colors placeholder:text-[#333]"
+      />
+    </div>
+  );
+}
+
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const router = useRouter();
@@ -52,6 +86,10 @@ export default function CheckoutPage() {
   >(STRIPE_CONFIGURED ? "stripe" : PAYPAL_CONFIGURED ? "paypal" : null);
 
   const cartTotal = total();
+  const SHIPPING_THRESHOLD = 5000; // €50.00 in cents
+  const SHIPPING_COST = 299;       // €2.99 in cents
+  const shipping = cartTotal >= SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const orderTotal = cartTotal + shipping;
 
   if (items.length === 0 && !success) {
     return (
@@ -95,36 +133,8 @@ export default function CheckoutPage() {
     setStep("payment");
   }
 
-  function Field({
-    label,
-    name,
-    type = "text",
-    required = true,
-    half = false,
-  }: {
-    label: string;
-    name: keyof OrderAddress;
-    type?: string;
-    required?: boolean;
-    half?: boolean;
-  }) {
-    return (
-      <div className={half ? "col-span-1" : "col-span-2"}>
-        <label className="block text-xs text-[#888] tracking-widest uppercase mb-1.5">
-          {label}
-          {required && <span className="text-[#C9A84C] ml-1">*</span>}
-        </label>
-        <input
-          type={type}
-          value={address[name] ?? ""}
-          onChange={(e) =>
-            setAddress((prev) => ({ ...prev, [name]: e.target.value }))
-          }
-          required={required}
-          className="w-full bg-[#111] border border-[#2A2A2A] text-white text-sm rounded px-3 py-2.5 focus:outline-none focus:border-[#C9A84C] transition-colors placeholder:text-[#333]"
-        />
-      </div>
-    );
+  function handleFieldChange(name: keyof OrderAddress, value: string) {
+    setAddress((prev) => ({ ...prev, [name]: value }));
   }
 
   return (
@@ -141,25 +151,29 @@ export default function CheckoutPage() {
               </h2>
 
               <div className="grid grid-cols-2 gap-4">
-                <Field label="First name" name="first_name" half />
-                <Field label="Last name" name="last_name" half />
-                <Field label="Email" name="email" type="email" />
-                <Field label="Phone" name="phone" type="tel" />
-                <Field label="Country (ISO code, e.g. IT)" name="country" half />
+                <Field label="First name" name="first_name" half value={address.first_name} onChange={handleFieldChange} />
+                <Field label="Last name" name="last_name" half value={address.last_name} onChange={handleFieldChange} />
+                <Field label="Email" name="email" type="email" value={address.email} onChange={handleFieldChange} />
+                <Field label="Phone" name="phone" type="tel" value={address.phone} onChange={handleFieldChange} />
+                <Field label="Country (ISO code, e.g. IT)" name="country" half value={address.country} onChange={handleFieldChange} />
                 <Field
                   label="State / Region"
                   name="region"
                   half
                   required={false}
+                  value={address.region ?? ""}
+                  onChange={handleFieldChange}
                 />
-                <Field label="Address" name="address1" />
+                <Field label="Address" name="address1" value={address.address1} onChange={handleFieldChange} />
                 <Field
                   label="Apartment, suite… (optional)"
                   name="address2"
                   required={false}
+                  value={address.address2 ?? ""}
+                  onChange={handleFieldChange}
                 />
-                <Field label="City" name="city" half />
-                <Field label="ZIP / Postal code" name="zip" half />
+                <Field label="City" name="city" half value={address.city} onChange={handleFieldChange} />
+                <Field label="ZIP / Postal code" name="zip" half value={address.zip} onChange={handleFieldChange} />
               </div>
 
               <button
@@ -257,7 +271,7 @@ export default function CheckoutPage() {
               {paymentMethod === "stripe" && STRIPE_CONFIGURED ? (
                 <StripeCheckoutButton
                   items={items}
-                  total={cartTotal}
+                  total={orderTotal}
                   shippingAddress={address}
                   onSuccess={() => {
                     clearCart();
@@ -272,7 +286,7 @@ export default function CheckoutPage() {
               ) : paymentMethod === "paypal" && PAYPAL_CONFIGURED ? (
                 <PayPalCheckoutButton
                   items={items}
-                  total={cartTotal}
+                  total={orderTotal}
                   shippingAddress={address}
                   onSuccess={() => {
                     clearCart();
@@ -336,19 +350,19 @@ export default function CheckoutPage() {
             <div className="border-t border-[#1A1A1A] pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-[#888]">Subtotal</span>
-                <span className="text-white">
-                  €{(cartTotal / 100).toFixed(2)}
-                </span>
+                <span className="text-white">€{(cartTotal / 100).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-[#888]">Shipping</span>
-                <span className="text-[#555]">Calculated by Printify</span>
+                {shipping === 0 ? (
+                  <span className="text-green-400 text-xs font-medium">Free</span>
+                ) : (
+                  <span className="text-white">€{(shipping / 100).toFixed(2)}</span>
+                )}
               </div>
               <div className="flex justify-between font-semibold text-base pt-2 border-t border-[#1A1A1A]">
                 <span className="text-white">Total</span>
-                <span className="text-[#C9A84C]">
-                  €{(cartTotal / 100).toFixed(2)}
-                </span>
+                <span className="text-[#C9A84C]">€{(orderTotal / 100).toFixed(2)}</span>
               </div>
             </div>
           </div>

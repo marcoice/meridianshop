@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { X, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart-store";
+import { useState, useEffect } from "react";
 
 export default function CartDrawer() {
-  const { items, isOpen, closeCart, removeItem, updateQuantity, total, itemCount } =
-    useCart();
+  const { isOpen, closeCart, removeItem, updateQuantity, total } = useCart();
+  const items = useCart((state) => state.items);
+  const [mounted, setMounted] = useState(false);
 
-  const count = itemCount();
+  useEffect(() => { setMounted(true); }, []);
+
+  // Prevent hydration mismatch: server renders 0, client syncs after mount
+  const count = mounted ? items.reduce((sum, i) => sum + i.quantity, 0) : 0;
 
   return (
     <>

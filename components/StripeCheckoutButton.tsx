@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { loadStripe } from "@stripe/js";
+import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
   CardElement,
@@ -11,9 +11,9 @@ import {
 } from "@stripe/react-stripe-js";
 import type { CartItem, OrderAddress } from "@/lib/types";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
-);
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 interface StripeCheckoutButtonProps {
   items: CartItem[];
