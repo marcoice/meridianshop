@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import type { OrderAddress } from "@/lib/types";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-01-27.acacia",
+  apiVersion: "2026-08-26.dahlia" as any,
 });
 
 interface PaymentIntentRequest {
