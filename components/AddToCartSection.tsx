@@ -166,8 +166,8 @@ export default function AddToCartSection({ product }: AddToCartProps) {
             onChange={(e) => {
               const v = enabledVariants.find((v) => v.id === Number(e.target.value));
               if (v) {
-                setSelectedColorId(colorOpt ? colorOpt.values.find((c) => v.options.includes(c.id))?.id : undefined);
-                setSelectedSizeId(sizeOpt ? sizeOpt.values.find((s) => v.options.includes(s.id))?.id : undefined);
+                setSelectedColorId(undefined);
+                setSelectedSizeId(undefined);
               }
             }}
             className="w-full focus:outline-none"
