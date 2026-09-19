@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/lib/cart-store";
 import type { PrintifyProduct, PrintifyVariant } from "@/lib/types";
 
 interface AddToCartProps {
   product: PrintifyProduct;
+  selectedColorId?: number;
+  onColorChange?: (colorId: number | undefined) => void;
 }
 
-export default function AddToCartSection({ product }: AddToCartProps) {
+export default function AddToCartSection({ product, selectedColorId, onColorChange }: AddToCartProps) {
   const { addItem } = useCart();
   const enabledVariants = product.variants.filter((v) => v.is_enabled);
   const defaultVariant = enabledVariants.find((v) => v.is_default) ?? enabledVariants[0];
@@ -17,22 +19,41 @@ export default function AddToCartSection({ product }: AddToCartProps) {
   const colorOpt = product.options.find((o) => o.type?.toLowerCase().includes("color"));
 
   // Track color and size independently
-  const [selectedColorId, setSelectedColorId] = useState<number | undefined>(
-    colorOpt && defaultVariant ? colorOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined
+  const [internalSelectedColorId, setInternalSelectedColorId] = useState<number | undefined>(
+    selectedColorId !== undefined 
+      ? selectedColorId 
+      : (colorOpt && defaultVariant ? colorOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined)
   );
+  
   const [selectedSizeId, setSelectedSizeId] = useState<number | undefined>(
     sizeOpt && defaultVariant ? sizeOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined
   );
   const [added, setAdded] = useState(false);
 
+  // Sync internal color state with prop
+  useEffect(() => {
+    if (selectedColorId !== undefined) {
+      setInternalSelectedColorId(selectedColorId);
+    }
+  }, [selectedColorId]);
+
   // Find the variant matching current color + size selection
   const selected = enabledVariants.find((v) => {
-    const colorMatch = !colorOpt || selectedColorId === undefined || v.options.includes(selectedColorId);
+    const colorMatch = !colorOpt || internalSelectedColorId === undefined || v.options.includes(internalSelectedColorId);
     const sizeMatch  = !sizeOpt  || selectedSizeId  === undefined || v.options.includes(selectedSizeId);
     return colorMatch && sizeMatch;
   });
 
   const defaultImage = product.images.find((img) => img.is_default) ?? product.images[0];
+
+  function handleColorChange(colorId: number | undefined) {
+    setInternalSelectedColorId(colorId);
+    onColorChange?.(colorId);
+  }
+
+  function handleSizeChange(sizeId: number | undefined) {
+    setSelectedSizeId(sizeId);
+  }
 
   function handleAdd() {
     if (!selected) return;
@@ -79,19 +100,19 @@ export default function AddToCartSection({ product }: AddToCartProps) {
       {colorOpt && enabledVariants.length > 1 && (
         <div>
           <p className="label mb-3" style={{ letterSpacing: "0.25em" }}>
-            Colour — <span style={{ color: "var(--text)" }}>{colorOpt.values.find((v) => v.id === selectedColorId)?.title ?? "—"}</span>
+            Colour — <span style={{ color: "var(--text)" }}>{colorOpt.values.find((v) => v.id === internalSelectedColorId)?.title ?? "—"}</span>
           </p>
           <div className="flex flex-wrap gap-2">
             {colorOpt.values.map((val) => {
               const hasAny = enabledVariants.some((v) => v.options.includes(val.id));
               if (!hasAny) return null;
-              const isSelected = selectedColorId === val.id;
+              const isSelected = internalSelectedColorId === val.id;
               const available = isComboAvailable(val.id, selectedSizeId);
               return (
                 <button
                   type="button"
                   key={val.id}
-                  onClick={() => setSelectedColorId(val.id)}
+                  onClick={() => handleColorChange(val.id)}
                   className="transition-all"
                   style={{
                     padding: "0.4rem 1rem",
@@ -125,12 +146,12 @@ export default function AddToCartSection({ product }: AddToCartProps) {
               const hasAny = enabledVariants.some((v) => v.options.includes(val.id));
               if (!hasAny) return null;
               const isSelected = selectedSizeId === val.id;
-              const available = isComboAvailable(selectedColorId, val.id);
+              const available = isComboAvailable(internalSelectedColorId, val.id);
               return (
                 <button
                   type="button"
                   key={val.id}
-                  onClick={() => setSelectedSizeId(val.id)}
+                  onClick={() => handleSizeChange(val.id)}
                   className="transition-all"
                   style={{
                     minWidth: "3rem", height: "2.75rem",
@@ -149,7 +170,7 @@ export default function AddToCartSection({ product }: AddToCartProps) {
               );
             })}
           </div>
-          {!selected && selectedSizeId && selectedColorId && (
+          {!selected && selectedSizeId && internalSelectedColorId && (
             <p className="mt-2 text-xs" style={{ color: "var(--text-3)" }}>
               This combination is not available
             </p>
@@ -166,8 +187,8 @@ export default function AddToCartSection({ product }: AddToCartProps) {
             onChange={(e) => {
               const v = enabledVariants.find((v) => v.id === Number(e.target.value));
               if (v) {
-                setSelectedColorId(undefined);
-                setSelectedSizeId(undefined);
+                handleColorChange(undefined);
+                handleSizeChange(undefined);
               }
             }}
             className="w-full focus:outline-none"

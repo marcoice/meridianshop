@@ -70,7 +70,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         )}
 
         {visibleProducts.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px" style={{ background: "var(--border)" }}>
+          <div 
+            className="gap-px" 
+            style={{ 
+              background: "var(--border)",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gridAutoRows: "auto",
+            }}
+          >
             {visibleProducts.map((product) => (
               <div key={product.id} style={{ background: "var(--bg)" }}>
                 <ProductCard product={product} />

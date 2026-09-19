@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import type { PrintifyProduct } from "@/lib/types";
 
 interface ProductCardProps {
@@ -10,6 +11,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, priority: _priority }: ProductCardProps) {
   const defaultImage = product.images.find((img) => img.is_default) ?? product.images[0];
+  const [imageError, setImageError] = useState(false);
 
   const enabledVariants = product.variants.filter((v) => v.is_enabled);
   const minPrice = enabledVariants.length
@@ -24,12 +26,13 @@ export default function ProductCard({ product, priority: _priority }: ProductCar
     >
       {/* Image container — square */}
       <div className="aspect-square overflow-hidden relative">
-        {defaultImage ? (
+        {defaultImage && !imageError ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={defaultImage.src}
             alt={product.title}
             loading="lazy"
+            onError={() => setImageError(true)}
             className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
           />
         ) : (

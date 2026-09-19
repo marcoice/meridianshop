@@ -111,9 +111,6 @@ export default function Footer() {
         <p style={{ fontSize: "0.7rem", color: "var(--text-3)", letterSpacing: "0.1em" }}>
           © {new Date().getFullYear()} Meridian. All rights reserved.
         </p>
-        <p style={{ fontSize: "0.7rem", color: "var(--text-3)", letterSpacing: "0.1em" }}>
-          Powered by Printify
-        </p>
       </div>
     </footer>
   );

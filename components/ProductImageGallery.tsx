@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PrintifyImage } from "@/lib/types";
 
 interface Props {
@@ -9,8 +9,12 @@ interface Props {
 }
 
 export default function ProductImageGallery({ images, title }: Props) {
-  const defaultImg = images.find((img) => img.is_default) ?? images[0];
-  const [activeSrc, setActiveSrc] = useState(defaultImg?.src ?? "");
+  const [activeSrc, setActiveSrc] = useState("");
+
+  useEffect(() => {
+    const defaultImg = images.find((img) => img.is_default) ?? images[0];
+    setActiveSrc(defaultImg?.src ?? "");
+  }, [images]);
 
   return (
     <div className="py-10 lg:pr-12 space-y-2">
@@ -34,7 +38,7 @@ export default function ProductImageGallery({ images, title }: Props) {
         <div className="grid grid-cols-5 gap-1">
           {images.slice(0, 10).map((img, i) => (
             <button
-              key={i}
+              key={`${img.src}-${i}`}
               onClick={() => setActiveSrc(img.src)}
               className="overflow-hidden focus-visible:ring-1 focus-visible:ring-[var(--gold)] focus:outline-none"
               style={{
