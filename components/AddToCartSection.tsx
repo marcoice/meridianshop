@@ -18,10 +18,10 @@ export default function AddToCartSection({ product }: AddToCartProps) {
 
   // Track color and size independently
   const [selectedColorId, setSelectedColorId] = useState<number | undefined>(
-    colorOpt?.values.find((v) => defaultVariant?.options.includes(v.id))?.id
+    colorOpt && defaultVariant ? colorOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined
   );
   const [selectedSizeId, setSelectedSizeId] = useState<number | undefined>(
-    sizeOpt?.values.find((v) => defaultVariant?.options.includes(v.id))?.id
+    sizeOpt && defaultVariant ? sizeOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined
   );
   const [added, setAdded] = useState(false);
 
@@ -166,8 +166,8 @@ export default function AddToCartSection({ product }: AddToCartProps) {
             onChange={(e) => {
               const v = enabledVariants.find((v) => v.id === Number(e.target.value));
               if (v) {
-                setSelectedColorId(colorOpt?.values.find((c) => v.options.includes(c.id))?.id);
-                setSelectedSizeId(sizeOpt?.values.find((s) => v.options.includes(s.id))?.id);
+                setSelectedColorId(colorOpt ? colorOpt.values.find((c) => v.options.includes(c.id))?.id : undefined);
+                setSelectedSizeId(sizeOpt ? sizeOpt.values.find((s) => v.options.includes(s.id))?.id : undefined);
               }
             }}
             className="w-full focus:outline-none"

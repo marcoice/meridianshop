@@ -205,14 +205,14 @@ export function getPaymentMethodName(
  * @returns Printify order payload
  */
 export function createPrintifyPayload(
-  items: Array<{ productId: string; variantId: string; quantity: number }>,
+  items: Array<{ productId: string; variantId: string | number; quantity: number }>,
   address: OrderAddress,
   paymentId: string
 ): CreateOrderPayload {
   return {
     line_items: items.map((item) => ({
       product_id: item.productId,
-      variant_id: item.variantId,
+      variant_id: typeof item.variantId === 'string' ? parseInt(item.variantId, 10) : item.variantId,
       quantity: item.quantity,
     })),
     shipping_method: 1,

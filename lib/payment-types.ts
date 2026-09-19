@@ -1,5 +1,7 @@
 // TypeScript types for payment processing
 
+import type { OrderAddress } from "@/lib/types";
+
 export interface PaymentIntentRequest {
   amount: number; // in cents
   items: Array<{

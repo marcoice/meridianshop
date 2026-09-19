@@ -74,10 +74,6 @@ export async function POST(request: Request) {
         customer_email: shippingAddress.email,
         shipping_address: JSON.stringify(shippingAddress),
       },
-      billing_details: {
-        name: `${shippingAddress.first_name} ${shippingAddress.last_name}`,
-        email: shippingAddress.email,
-      },
     });
 
     return NextResponse.json({
