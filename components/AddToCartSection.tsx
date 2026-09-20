@@ -18,11 +18,17 @@ export default function AddToCartSection({ product, selectedColorId, onColorChan
   const sizeOpt  = product.options.find((o) => o.type?.toLowerCase().includes("size"));
   const colorOpt = product.options.find((o) => o.type?.toLowerCase().includes("color"));
 
+  const whiteColorId = colorOpt
+    ? colorOpt.values.find((value) =>
+        ["white", "bianco", "ivory", "cream"].some((word) => value.title.toLowerCase().includes(word))
+      )?.id
+    : undefined;
+
   // Track color and size independently
   const [internalSelectedColorId, setInternalSelectedColorId] = useState<number | undefined>(
-    selectedColorId !== undefined 
-      ? selectedColorId 
-      : (colorOpt && defaultVariant ? colorOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined)
+    selectedColorId !== undefined
+      ? selectedColorId
+      : (whiteColorId ?? (colorOpt && defaultVariant ? colorOpt.values.find((v) => defaultVariant.options.includes(v.id))?.id : undefined))
   );
   
   const [selectedSizeId, setSelectedSizeId] = useState<number | undefined>(

@@ -9,9 +9,27 @@ interface ProductCardProps {
   priority?: boolean;
 }
 
+function shouldUseCustomCover(product: PrintifyProduct) {
+  const haystack = [
+    product.title,
+    product.description,
+    product.tags.join(" "),
+    ...product.options.map((opt) => `${opt.name} ${opt.values.map((value) => value.title).join(" ")}`),
+  ].join(" ").toLowerCase();
+
+  const customPattern = /(withewhereshirt|withe where|where shirt|where.*shirt|witherwhere|where.*heart|where.*goes)/i;
+  const excludedPattern = /(hoodie|sweatshirt|felpa|pullover|crewneck|jacket|zip)/i;
+
+  return customPattern.test(haystack) && !excludedPattern.test(haystack);
+}
+
 export default function ProductCard({ product, priority: _priority }: ProductCardProps) {
   const defaultImage = product.images.find((img) => img.is_default) ?? product.images[0];
   const [imageError, setImageError] = useState(false);
+
+  const useCustomCover = shouldUseCustomCover(product) && !imageError;
+  const customWhiteCover = "/images/front-withewhereshirt.png";
+  const imageSrc = useCustomCover ? customWhiteCover : defaultImage?.src ?? "";
 
   const enabledVariants = product.variants.filter((v) => v.is_enabled);
   const minPrice = enabledVariants.length
@@ -26,10 +44,10 @@ export default function ProductCard({ product, priority: _priority }: ProductCar
     >
       {/* Image container — square */}
       <div className="aspect-square overflow-hidden relative">
-        {defaultImage && !imageError ? (
+        {imageSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={defaultImage.src}
+            src={imageSrc}
             alt={product.title}
             loading="lazy"
             onError={() => setImageError(true)}

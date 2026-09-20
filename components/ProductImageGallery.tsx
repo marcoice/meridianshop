@@ -16,38 +16,44 @@ export default function ProductImageGallery({ images, title }: Props) {
     setActiveSrc(defaultImg?.src ?? "");
   }, [images]);
 
+  const safeImages = images.length > 0 ? images : [];
+
   return (
-    <div className="py-10 lg:pr-12 space-y-2">
-      {/* Main image */}
+    <div className="py-10 lg:pr-12 space-y-3">
       <div
-        className="overflow-hidden"
-        style={{ aspectRatio: "1/1", background: "var(--surface)" }}
+        className="overflow-hidden rounded-[2px] border border-[var(--border)]"
+        style={{
+          aspectRatio: "1/1",
+          background: "linear-gradient(180deg, #f7f4ef 0%, #f0eee8 100%)",
+          boxShadow: "inset 0 0 0 1px rgba(20,20,20,0.02)",
+        }}
       >
         {activeSrc && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={activeSrc}
             alt={title}
-            className="w-full h-full object-cover transition-opacity duration-300"
+            className="w-full h-full transition-opacity duration-300"
+            style={{ objectFit: "contain", padding: "2rem", background: "transparent" }}
           />
         )}
       </div>
 
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div className="grid grid-cols-5 gap-1">
-          {images.slice(0, 10).map((img, i) => (
+      {safeImages.length > 1 && (
+        <div className="grid grid-cols-5 gap-2">
+          {safeImages.slice(0, 10).map((img, i) => (
             <button
               key={`${img.src}-${i}`}
               onClick={() => setActiveSrc(img.src)}
-              className="overflow-hidden focus-visible:ring-1 focus-visible:ring-[var(--gold)] focus:outline-none"
+              className="overflow-hidden rounded-[2px] focus-visible:ring-1 focus-visible:ring-[var(--gold)] focus:outline-none"
               style={{
                 aspectRatio: "1/1",
-                background: "var(--surface)",
+                background: "linear-gradient(180deg, #f7f4ef 0%, #f0eee8 100%)",
                 border: activeSrc === img.src
                   ? "1px solid var(--gold)"
-                  : "1px solid transparent",
-                transition: "border-color 0.2s",
+                  : "1px solid var(--border)",
+                transition: "border-color 0.2s, transform 0.2s ease",
+                transform: activeSrc === img.src ? "translateY(-1px)" : "none",
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -55,8 +61,12 @@ export default function ProductImageGallery({ images, title }: Props) {
                 src={img.src}
                 alt={`${title} — view ${i + 1}`}
                 loading="lazy"
-                className="w-full h-full object-cover transition-opacity duration-200 hover:opacity-100"
-                style={{ opacity: activeSrc === img.src ? 1 : 0.5 }}
+                className="w-full h-full transition-opacity duration-200 hover:opacity-100"
+                style={{
+                  objectFit: "contain",
+                  opacity: activeSrc === img.src ? 1 : 0.6,
+                  padding: "0.35rem",
+                }}
               />
             </button>
           ))}
